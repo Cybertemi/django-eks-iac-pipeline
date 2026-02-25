@@ -1,0 +1,88 @@
+name: Prime Choice CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  DOCKERHUB_USERNAME: cytemi5000
+  IMAGE_NAME: prime-choice-app
+  EKS_CLUSTER_NAME: my-cluster
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Apply
+      working-directory: terraform
+      run: |
+        terraform init
+        terraform validate
+        terraform apply -auto-approve
+
+    - name: Configure kubectl
+      run: |
+        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
+        kubectl get nodes
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    - name: Build Docker Image
+      run: |
+        docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.run_number }} .
+
+    # 🔐 TRIVY SCAN
+    - name: Scan Image with Trivy
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.run_number }}
+        format: table
+        exit-code: '1'
+        severity: CRITICAL,HIGH
+
+    - name: Push Docker Image
+      run: |
+        docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.run_number }}
+
+    - name: Update Image Tag
+      working-directory: kubernetes
+      run: |
+        sed -i "s|image: .*|image: $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.run_number }}|g" django-deployment.yaml
+
+    - name: Deploy to EKS
+      working-directory: kubernetes
+      run: |
+        kubectl apply -f namespace.yaml
+        kubectl apply -f postgres-secret.yaml
+        kubectl apply -f django-secret.yaml
+        kubectl apply -f postgres-pvc.yaml
+        kubectl apply -f postgres-deployment.yaml
+        kubectl apply -f postgres-service.yaml
+        kubectl apply -f django-deployment.yaml
+        kubectl apply -f django-service.yaml
+
+    - name: Wait for Rollout
+      run: |
+        kubectl rollout status deployment/postgres -n default --timeout=300s
+        kubectl rollout status deployment/django -n default --timeout=300s

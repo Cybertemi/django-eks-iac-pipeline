@@ -5,6 +5,14 @@ import dj_database_url
 # Load environment variables from .env file
 load_dotenv()
 
+DATABASES = {
+   "default": dj_database_url.parse(
+       os.getenv("DATABASE_URL"),
+       conn_max_age=600
+    )
+
+}
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -13,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY ='this is my secret'
+SECRET_KEY ='A secret'
 
 # # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -92,11 +100,11 @@ WSGI_APPLICATION = 'primechoice.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL')
-    )
-}
+#DATABASES = {
+ #   'default': dj_database_url.config(
+ #       default=os.getenv('DATABASE_URL')
+  #  )
+#}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

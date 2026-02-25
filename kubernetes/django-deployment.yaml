@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: django
-          image: peterukpabi4/prime-choice-app:v1
+          image: cytemi5000/primechoice:latest
           ports:
             - containerPort: 8000
           envFrom:
