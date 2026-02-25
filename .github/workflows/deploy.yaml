@@ -8,7 +8,7 @@ on:
 env:
   AWS_REGION: us-east-1
   DOCKERHUB_USERNAME: cytemi5000
-  IMAGE_NAME: prime-choice-app
+  IMAGE_NAME: primechoice
   EKS_CLUSTER_NAME: my-cluster
 
 jobs:
