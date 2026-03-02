@@ -3,53 +3,66 @@
 # =========================
 FROM python:3.13.6-slim-bookworm AS builder
 
+# App directory
+RUN mkdir /app
 WORKDIR /app
 
+# Python optimizations
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install build dependencies
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y build-essential && \
-    rm -rf /var/lib/apt/lists/*
+# System deps
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip & wheel safely
-RUN pip install --upgrade pip wheel
+# Upgrade pip
+RUN pip install --upgrade pip
 
-# Install Python dependencies
+# Copy requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
+# Copy project files
 COPY . .
 
-# Prepare static files
+# -------------------------
+# Build arguments (secrets)
+# -------------------------
+ARG DJANGO_SETTINGS_MODULE
+ARG SECRET_KEY
+ARG DATABASE_URL
+
+# Set as environment variables for this stage
+ENV DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
+ENV SECRET_KEY=$SECRET_KEY
+ENV DATABASE_URL=$DATABASE_URL
+
+# Ensure static folder exists
 ENV STATIC_ROOT=/app/staticfiles
 RUN mkdir -p $STATIC_ROOT
 
-# Use dummy env only for collectstatic if required
-ENV DJANGO_SETTINGS_MODULE=primechoice.settings
+# Collect static files
 RUN python manage.py collectstatic --noinput
 
 # =========================
 # Stage 2: Production
 # =========================
-FROM python:3.13.6-slim-bookworm
+FROM python:3.13-slim
 
-# Patch OS packages (fixes glibc CVEs)
-RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+# Non-root user
+RUN useradd -m -r appuser && \
+    mkdir /app && \
+    chown -R appuser /app
 
-# Create non-root user
-RUN useradd -m -r appuser
-
-WORKDIR /app
-
-# Copy Python runtime from builder
+# Copy installed packages
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# Copy application code
+# Copy app code + collected static
 COPY --from=builder /app /app
+
+WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
