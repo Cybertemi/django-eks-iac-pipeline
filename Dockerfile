@@ -1,68 +1,55 @@
 # =========================
 # Stage 1: Builder
 # =========================
-FROM python:3.13.6-slim AS builder
+FROM python:3.13.6-slim-bookworm AS builder
 
-# App directory
-RUN mkdir /app
 WORKDIR /app
 
-# Python optimizations
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# System deps
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Install build dependencies
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
-RUN pip install --upgrade pip
+# Upgrade pip & wheel safely
+RUN pip install --upgrade pip wheel
 
-# Copy requirements
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copy project
 COPY . .
 
-# -------------------------
-# Build arguments (secrets)
-# -------------------------
-ARG DJANGO_SETTINGS_MODULE
-ARG SECRET_KEY
-ARG DATABASE_URL
-
-# Set as environment variables for this stage
-ENV DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
-ENV SECRET_KEY=$SECRET_KEY
-ENV DATABASE_URL=$DATABASE_URL
-
-# Ensure static folder exists
+# Prepare static files
 ENV STATIC_ROOT=/app/staticfiles
 RUN mkdir -p $STATIC_ROOT
 
-# Collect static files
+# Use dummy env only for collectstatic if required
+ENV DJANGO_SETTINGS_MODULE=primechoice.settings
 RUN python manage.py collectstatic --noinput
 
 # =========================
 # Stage 2: Production
 # =========================
-FROM python:3.13-slim
+FROM python:3.13.6-slim-bookworm
 
-# Non-root user
-RUN useradd -m -r appuser && \
-    mkdir /app && \
-    chown -R appuser /app
+# Patch OS packages (fixes glibc CVEs)
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
-# Copy installed packages
+# Create non-root user
+RUN useradd -m -r appuser
+
+WORKDIR /app
+
+# Copy Python runtime from builder
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# Copy app code + collected static
+# Copy application code
 COPY --from=builder /app /app
-
-WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
