@@ -1,18 +1,19 @@
-name: Prime Choice Destroy Infrastructure
+name: Prime Choice Infrastructure
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
   workflow_dispatch:
-    inputs:
-      confirm:
-        description: "Type DESTROY to confirm infrastructure deletion"
-        required: true
 
 env:
   AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: my-cluster
 
 jobs:
-  destroy:
-    if: ${{ github.event.inputs.confirm == 'DESTROY' }}
+  terraform:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,8 +30,18 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Destroy
+      - name: Terraform Init
         working-directory: terraform
-        run: |
-          terraform init
-          terraform destroy -auto-approve
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
