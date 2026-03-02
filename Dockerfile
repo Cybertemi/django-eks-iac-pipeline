@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip wheel==0.46.2
 
 # Copy requirements
 COPY requirements.txt .
