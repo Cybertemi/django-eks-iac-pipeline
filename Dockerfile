@@ -1,7 +1,7 @@
 # =========================
 # Stage 1: Builder
 # =========================
-FROM python:3.13-slim AS builder
+FROM python:3.13.6-slim AS builder
 
 # App directory
 RUN mkdir /app
