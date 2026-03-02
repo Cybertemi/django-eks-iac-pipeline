@@ -41,7 +41,11 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }} .
+          docker build \
+            --build-arg DJANGO_SETTINGS_MODULE=primechoice.settings \
+            --build-arg SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} \
+            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            -t $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }} .
 
       - name: Scan Image with Trivy
         uses: aquasecurity/trivy-action@0.20.0
