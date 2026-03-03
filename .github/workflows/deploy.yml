@@ -69,6 +69,7 @@ jobs:
         working-directory: kubernetes
         run: |
           kubectl apply -f namespace.yaml
+          kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
           kubectl apply -f django-secret.yaml
           kubectl apply -f postgres-pvc.yaml
