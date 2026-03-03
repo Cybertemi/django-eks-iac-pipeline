@@ -85,10 +85,10 @@ jobs:
         if: always()
         run: |
           echo "=== PODS ==="
-          kubectl get pods -n default
+          kubectl get pods -n django-app
 
           echo "=== DESCRIBE ==="
-          kubectl describe pods -n default
+          kubectl describe pods -n django-app
 
           echo "=== LOGS ==="
-          kubectl logs -n default --all-containers --tail=100 || true
+          kubectl logs -n django-app --all-containers --tail=100 || true
