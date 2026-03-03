@@ -79,5 +79,5 @@ jobs:
 
       - name: Wait for Rollout
         run: |
-          kubectl rollout status deployment/postgres -n default --timeout=300s
-          kubectl rollout status deployment/django -n default --timeout=300s
+          kubectl rollout status deployment/postgres -n django-app --timeout=300s
+          kubectl rollout status deployment/django -n django-app --timeout=300s
