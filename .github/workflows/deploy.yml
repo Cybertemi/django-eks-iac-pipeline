@@ -81,3 +81,14 @@ jobs:
         run: |
           kubectl rollout status deployment/postgres -n django-app --timeout=300s
           kubectl rollout status deployment/django -n django-app --timeout=300s
+      - name: Debug postgres
+        if: always()
+        run: |
+          echo "=== PODS ==="
+          kubectl get pods -n default
+
+          echo "=== DESCRIBE ==="
+          kubectl describe pods -n default
+
+          echo "=== LOGS ==="
+          kubectl logs -n default --all-containers --tail=100 || true
