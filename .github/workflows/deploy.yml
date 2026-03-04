@@ -99,7 +99,7 @@ jobs:
           kubectl get pvc -n django-app
       - name: restart 
         run: |
-          echo "=== RESTART"
+          echo "=== RESTART CSI"
           kubectl delete pods -n kube-system -l app=ebs-csi-controller
 
           echo "=== CSI status ==="
