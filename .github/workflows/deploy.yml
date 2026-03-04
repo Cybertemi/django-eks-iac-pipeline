@@ -96,7 +96,19 @@ jobs:
           kubectl logs -n django-app --all-containers --tail=100 || true
           kubectl logs -n django-app -l app=postgres --tail=100
 
-      - name: Get Django Service External IP
+      - name: Wait for Django LoadBalancer IP
         run: |
-          echo "Fetching the external IP of Django service..."
-          kubectl get svc -n django-app
+          echo "Waiting for Django external IP..."
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl get svc django -n django-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ ! -z "$EXTERNAL_IP" ]; then
+              echo "Django is available at: http://$EXTERNAL_IP"
+              break
+            fi
+            echo "Waiting for external IP... ($i/30)"
+            sleep 10
+          done
+          if [ -z "$EXTERNAL_IP" ]; then
+            echo "External IP not assigned after ~5 minutes"
+            exit 1
+          fi
