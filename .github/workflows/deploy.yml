@@ -99,4 +99,4 @@ jobs:
       - name: Get Django Service External IP
         run: |
           echo "Fetching the external IP of Django service..."
-          kubectl get svc django-service -n django-app
+          kubectl get svc -n django-app
