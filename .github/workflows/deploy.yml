@@ -97,6 +97,10 @@ jobs:
 
           echo "=== PVC STATUS ==="
           kubectl get pvc -n django-app
+      - name: restart 
+        run: |
+          echo "=== RESTART"
+          kubectl delete pods -n kube-system -l app=ebs-csi-controller
 
           echo "=== CSI status ==="
           kubectl get pods -n kube-system | grep ebs
