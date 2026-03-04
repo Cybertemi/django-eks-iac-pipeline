@@ -69,6 +69,8 @@ jobs:
         working-directory: kubernetes
         run: |
           kubectl apply -f namespace.yaml
+      - name: Delete old Postgres PVC
+        run: kubectl delete pvc postgres-pvc -n django-app --ignore-not-found=true
           kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
           kubectl apply -f django-secret.yaml
