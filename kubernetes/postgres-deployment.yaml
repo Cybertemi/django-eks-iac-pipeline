@@ -22,8 +22,8 @@ spec:
             - secretRef:
                 name: postgres-secret
           env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
@@ -31,4 +31,3 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-pvc
-
