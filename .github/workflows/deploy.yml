@@ -65,14 +65,15 @@ jobs:
         run: |
           sed -i "s|image: .*|image: $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }}|g" django-deployment.yaml
 
-      - name: Deploy to EKS
+      - name: Create namespace
         working-directory: kubernetes
         run: |
           kubectl apply -f namespace.yaml
       - name: Delete old Postgres PVC
         run: |
           kubectl delete pvc postgres-pvc -n django-app --ignore-not-found=true
-         
+      - name: Deploy to EKS
+        run: |
           kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
           kubectl apply -f django-secret.yaml
