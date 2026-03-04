@@ -98,6 +98,9 @@ jobs:
           echo "=== PVC STATUS ==="
           kubectl get pvc -n django-app
 
+          echo "=== CSI status ==="
+          kubectl get pods -n kube-system | grep ebs
+
       - name: Wait for Rollout
         run: |
           kubectl rollout status deployment/postgres -n django-app --timeout=300s
