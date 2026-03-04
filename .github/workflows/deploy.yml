@@ -73,6 +73,7 @@ jobs:
         run: |
           kubectl delete pvc postgres-pvc -n django-app --ignore-not-found=true
       - name: Deploy to EKS
+        working-directory: kubernetes
         run: |
           kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
