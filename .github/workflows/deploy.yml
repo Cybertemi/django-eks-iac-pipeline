@@ -42,9 +42,6 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build --no-cache \
-            --build-arg DJANGO_SETTINGS_MODULE=primechoice.settings \
-            --build-arg SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} \
-            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
             -t $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }} .
 
       - name: Scan Image with Trivy
@@ -60,27 +57,15 @@ jobs:
         run: |
           docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }}
 
-      - name: Update Image Tag
+      - name: Update Deployment Image
         working-directory: kubernetes
         run: |
           sed -i "s|image: .*|image: $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }}|g" django-deployment.yaml
 
-      - name: Create namespace
-        working-directory: kubernetes
-        run: |
-          kubectl apply -f namespace.yaml
-      - name: Delete old Postgres PVC
-        run: |
-          kubectl delete pvc postgres-pvc -n django-app --ignore-not-found=true
-      - name: checks
-        working-directory: kubernetes
-        run: |
-          kubectl get storageclass
-          kubectl get pvc -n django-app
-          kubectl get pods -n django-app
       - name: Deploy to EKS
         working-directory: kubernetes
         run: |
+          kubectl apply -f namespace.yaml
           kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
           kubectl apply -f django-secret.yaml
@@ -90,33 +75,17 @@ jobs:
           kubectl apply -f django-deployment.yaml
           kubectl apply -f django-service.yaml
 
-      - name: Debug Storage
-        run: |
-          echo "=== STORAGE CLASSES ==="
-          kubectl get storageclass
-
-          echo "=== PVC STATUS ==="
-          kubectl get pvc -n django-app
-      - name: restart 
-        run: |
-          echo "=== RESTART CSI"
-          kubectl delete pods -n kube-system -l app=ebs-csi-controller
-
-          echo "=== CSI status ==="
-          kubectl get pods -n kube-system | grep ebs
-
-      - name: Wait for Rollout
+      - name: Wait for Postgres
         run: |
           kubectl rollout status deployment/postgres -n django-app --timeout=300s
-          kubectl rollout status deployment/django -n django-app --timeout=300s
-      - name: Debug postgres
-        if: always()
+
+      - name: Wait for Django
         run: |
-          echo "=== PODS ==="
+          kubectl rollout status deployment/django -n django-app --timeout=300s
+
+      - name: Debug (if failed)
+        if: failure()
+        run: |
           kubectl get pods -n django-app
-
-          echo "=== DESCRIBE ==="
           kubectl describe pods -n django-app
-
-          echo "=== LOGS ==="
           kubectl logs -n django-app --all-containers --tail=100 || true
