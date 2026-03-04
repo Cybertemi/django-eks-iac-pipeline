@@ -95,3 +95,8 @@ jobs:
           kubectl describe pods -n django-app
           kubectl logs -n django-app --all-containers --tail=100 || true
           kubectl logs -n django-app -l app=postgres --tail=100
+
+      - name: Get Django Service External IP
+        run: |
+          echo "Fetching the external IP of Django service..."
+          kubectl get svc django-service -n django-app
