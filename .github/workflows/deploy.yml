@@ -71,6 +71,8 @@ jobs:
           kubectl apply -f namespace.yaml
       - name: Delete old Postgres PVC
         run: kubectl delete pvc postgres-pvc -n django-app --ignore-not-found=true
+         
+          
           kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
           kubectl apply -f django-secret.yaml
@@ -79,6 +81,14 @@ jobs:
           kubectl apply -f postgres-service.yaml
           kubectl apply -f django-deployment.yaml
           kubectl apply -f django-service.yaml
+
+      - name: Debug Storage
+        run: |
+          echo "=== STORAGE CLASSES ==="
+          kubectl get storageclass
+
+          echo "=== PVC STATUS ==="
+          kubectl get pvc -n django-app
 
       - name: Wait for Rollout
         run: |
