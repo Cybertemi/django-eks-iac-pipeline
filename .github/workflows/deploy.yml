@@ -84,7 +84,6 @@ jobs:
           kubectl apply -f django-configmap.yaml
           kubectl apply -f postgres-secret.yaml
           kubectl apply -f django-secret.yaml
-          kubectl apply -f gp3-csi.yaml
           kubectl apply -f postgres-pvc.yaml
           kubectl apply -f postgres-deployment.yaml
           kubectl apply -f postgres-service.yaml
