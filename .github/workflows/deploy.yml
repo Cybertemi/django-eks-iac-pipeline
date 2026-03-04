@@ -86,6 +86,7 @@ jobs:
       - name: Debug (if failed)
         if: failure()
         run: |
+          kubectl get secret postgres-secret -n django-app -o yaml
           kubectl get pods -n django-app
           kubectl describe pods -n django-app
           kubectl logs -n django-app --all-containers --tail=100 || true
