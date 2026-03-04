@@ -61,7 +61,12 @@ jobs:
         working-directory: kubernetes
         run: |
           sed -i "s|image: .*|image: $DOCKERHUB_USERNAME/$IMAGE_NAME:${{ github.sha }}|g" django-deployment.yaml
-
+     
+      - name: Delete old postrgres 
+        working-directory: kubernetes
+        run: |
+         kubectl delete pvc postgres-pvc -n django-app --ignore-not-found
+         kubectl delete deployment postgres -n django-app --ignore-not-found
       - name: Deploy to EKS
         working-directory: kubernetes
         run: |
