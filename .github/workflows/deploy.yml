@@ -90,3 +90,4 @@ jobs:
           kubectl get pods -n django-app
           kubectl describe pods -n django-app
           kubectl logs -n django-app --all-containers --tail=100 || true
+          kubectl logs postgres-69bccf87f8-ncgkh -n django-app
