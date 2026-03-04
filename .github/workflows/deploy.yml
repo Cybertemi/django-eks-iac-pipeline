@@ -72,6 +72,12 @@ jobs:
       - name: Delete old Postgres PVC
         run: |
           kubectl delete pvc postgres-pvc -n django-app --ignore-not-found=true
+      - name: checks
+        working-directory: kubernetes
+        run: |
+          kubectl get storageclass
+          kubectl get pvc -n django-app
+          kubectl get pods -n django-app
       - name: Deploy to EKS
         working-directory: kubernetes
         run: |
