@@ -4,14 +4,14 @@
 
 Prime Choice is a Django-based web application deployed on Amazon EKS using a fully automated CI/CD pipeline. The project demonstrates an end-to-end DevOps workflow including infrastructure provisioning, containerization, vulnerability scanning and Kubernetes deployment.
 
-This repository contains the application code, Terraform configuration for infrastructure, Docker setup for containerization, Kubernetes manifests for deployment and a GitHub Actions pipeline for automated builds and deployments. The goal of this project is to showcase modern DevOps practices for deploying scalable applications in the cloud.
+This repository contains the application code, Terraform configuration for infrastructure, Docker setup for containerization, Kubernetes manifests for deployment and a GitHub Actions pipeline for automated builds and deployments. The goal is to showcase modern cloud-native practices for deploying scalable applications, while providing a developer-friendly guide to reproduce or extend the workflow.
 
 ### Architecture
 
 
 Terraform – Infrastructure provisioning on AWS
 
-AWS EKS – Managed Kubernetes cluster
+AWS EKS – Managed Kubernetes cluster for deployment
 
 Docker – Containerization of the Django application
 
@@ -24,6 +24,18 @@ GitHub Actions – CI/CD pipeline automation
 Trivy – Container vulnerability scanning
 
 DockerHub – Container image registry
+
+### Architecture Flow
+
+Terraform provisions infrastructure.
+
+Docker builds and pushes the Django app image.
+
+CI/CD pipeline triggers automated deployment.
+
+Kubernetes deploys the app and database on EKS.
+
+Application is exposed via LoadBalancer.
 
 ### Prerequisites
 
@@ -60,7 +72,7 @@ Local testing is optional but allows important for verification and to ensure th
 
 ### Steps for local testing
 
-## Clone Repository
+## 1. Clone Repository
 git clone <repository_url>
 cd <repository_folder>
 Create Virtual Environment
@@ -69,7 +81,7 @@ source venv/bin/activate (for linux)
 
 venv\Scripts\activate (for wondows)
 
-## Install Dependencies
+## 2. Install Dependencies
 
 pip install -r requirements.txt
 Run the Application
@@ -80,7 +92,7 @@ The application will be available at:
 
 http://127.0.0.1:8000
 
-## Infrastructure Provisioning (Terraform)
+## 3. Infrastructure Provisioning (Terraform)
 
 Infrastructure is provisioned using Terraform to create AWS VPC, Subnets, IAM roles and EKS cluster
 
@@ -94,7 +106,7 @@ Verify the cluster:
 
 aws eks list-clusters --region us-east-1
 
-## Docker Containerization
+## 4. Docker Containerization
 
 The Django application is packaged as a Docker container.
 
@@ -103,14 +115,14 @@ docker build -t <dockerhub_username>/primechoice:<git_sha> .
 Push Image
 docker push <dockerhub_username>/primechoice:<git_sha>
 
-## Kubernetes Deployment
+## 5. Kubernetes Deployment
 
 The application and database are deployed using Kubernetes manifests.
 
 Configure kubectl
 aws eks update-kubeconfig --region us-east-1 --name my-cluster
 
-## Apply Kubernetes Resources
+## 6. Apply Kubernetes Resources
 
 kubectl apply -f kubernetes/namespace.yaml
 kubectl apply -f kubernetes/django-configmap.yaml
@@ -122,12 +134,12 @@ kubectl apply -f kubernetes/postgres-service.yaml
 kubectl apply -f kubernetes/django-deployment.yaml
 kubectl apply -f kubernetes/django-service.yaml
 
-## Verify Deployment
+## 7. Verify Deployment
 
 kubectl rollout status deployment/postgres -n django-app
 kubectl rollout status deployment/django -n django-app
 
-## Security Scanning with Trivy
+## 8. Security Scanning with Trivy
 
 Before deployment, Docker images are scanned for vulnerabilities using Trivy.
 
@@ -141,7 +153,7 @@ Rebuild the Docker image
 
 Redeploy the application
 
-### CI/CD Pipeline (GitHub Actions)
+### 9. CI/CD Pipeline (GitHub Actions)
 
 The repository includes a GitHub Actions pipeline that automates the deployment process.This pipeline ensures consistent and automated deployments on every commit and its stages include:
 
@@ -165,7 +177,7 @@ Retrieve service information
 
 Accessing the Live Application
 
-## After deployment, retrieve the service details:
+## 10. After deployment, retrieve the service details:
 
 kubectl get svc -n django-app
 
@@ -191,13 +203,33 @@ In a case of Pod CrashLoopBackOff or any other errors:
 
 kubectl describe pod <pod-name> -n django-app
 kubectl logs <pod-name> -n django-app
-PVC Issues
 
-### NOTE
+### PVC Issues
 
 Ensure the PersistentVolumeClaim is created before deploying PostgreSQL.
 
 kubectl get pvc -n django-app
+
+### Design Decisions
+
+Terraform → reproducible infrastructure
+
+EKS → scalable, managed Kubernetes
+
+Docker → consistent runtime environment
+
+CI/CD → automated builds & deployments
+
+Trivy → proactive vulnerability scanning
+
+### Use Cases
+Learning end-to-end DevOps workflows
+
+Deploying scalable Django apps in the cloud
+
+Practicing CI/CD and IaC on AWS
+
+Understanding Kubernetes orchestration
 
 
 ### Conclusion
@@ -208,3 +240,4 @@ This project demonstrates a complete DevOps workflow for deploying a Django appl
 
 Temitope Ilori
 Linkedin: http://linkedin.com/in/iloritemi
+
